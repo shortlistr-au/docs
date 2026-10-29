@@ -28,9 +28,10 @@ Guided Demo Mode lets a founder run the full Shortlistr product story in the pro
 
 | v1 element | Reality in production | v2 decision |
 |---|---|---|
-| Job Match score, gaps and "Why this role?" on the Demo Inc tracker card | The tracker card has no match score. Job Match is its own hub tab (`/hub?tab=job-matching`) showing the **Job match report card** | Separate screen on the Job Matching tab |
-| Coaching "Second Round", "Coach mode", 10-second clip | Jen's setup offers General Practice, Recruiter Screen, First Round, Technical / Functional, Panel, Final Round, Salary Negotiation. Modes are **Coach Mode** and **Interview Mode**. Sessions are live ElevenLabs voice calls | Use **Final Round** + **Coach Mode**. Show a completed session's **Interview Coach Debrief**, not a live call |
-| Day-30 email "Has the employer stopped communicating with you?" | No such email exists. The tracker card nudges at 14 days, shows **Silent Rejection Risk** at 20 days and **Likely Silent Rejection** at 30 days, with an in-card prompt "Have you heard back from …?" | Use the real in-card nudge and **Mark as Ghosted** |
+| Application Tracker as a single list of six rows with a stage pill and a match % (the current mock) | The tracker is a horizontal Kanban board of 240px columns. Each card shows the company logo, job title, company, a **Direct** or **Agency** pill, the column pill, status pills and a "days ago · date" footer. Clicking a card opens a centred **Application Details** modal | Use the real board and card modal (see [Screen 3: tracker](#screen-3-tracker)) |
+| Job Match score, gaps and "Why this role?" on the Demo Inc tracker card | The tracker card has no match score. Job Match is its own hub tab (`/hub?tab=job-matching`). A result only exists after the candidate fills in the input form and clicks **Run match** | Separate screen that starts on the input form and reveals the stored result on **Run match** |
+| Coaching "Second Round", "Coach mode", 10-second clip | Jen's setup offers General Practice, Recruiter Screen, First Round, Technical / Functional, Panel, Final Round, Salary Negotiation. Modes are **Coach Mode** and **Interview Mode**. Sessions are live ElevenLabs voice calls. The Interview Coach tab is a setup card beside **Recent sessions**, and a past session opens as a feedback modal | Show the real Interview Coach tab set to **Final Round** and **Coach Mode**, then open a stored past session. Never start a live call |
+| Day-30 email "Has the employer stopped communicating with you?" | No such email exists. Inside the opened card, a nudge banner reads **STALLED — FOLLOW UP** from 14 days in stage, **SILENT REJECTION RISK** from 20 days and **LIKELY SILENT REJECTION** from 30 days. At 30 days it offers **Draft Follow-up**, **Update Status** and **Mark as Ghosted** | Use the real nudge banner and **Mark as Ghosted** |
 | Trust checks turning green after submit | No candidate-facing check list exists. After submitting, the candidate sees "Your review is pending moderation" | Show the real success screen, plus one demo-only explainer card naming the real pipeline steps |
 | Employer hub "CEI trend", "Silent Rejection Risk bar", "weekly summary" | Hub Overview has no trend, no risk bar and no weekly summary. Trend lives in **Explore Data Hub › Insights & Reporting** | Use the real Hub Overview, then Explore Data Hub |
 | Recruiter-level results (employer, 4 recruiters; agency, 5 of 12) | **Team Performance** is a placeholder in both hubs: "We're building this page…". Helply has one team member and every review names a variant of the same test recruiter | Removed from v1 scope (see [Out of scope](#out-of-scope-for-v1)) |
@@ -114,13 +115,13 @@ Every screen except 1, 9 and 15 is the production screen at the route shown. Scr
 | # | Screen (persona) | Real route and component | Demo data shown | Callout | Talking point |
 |---|---|---|---|---|---|
 | 1 | Welcome card | Demo overlay | "Day 30. You applied. You interviewed. Then nothing." Optional **Presenting to** line | None | "Meet Priya. She's applying for a Senior Product Manager role at Demo Inc." |
-| 2 | Chrome extension (Priya) | **Shortlistr Application Tracker** extension side panel, on a fictional job ad hosted on shortlistr.io | Side panel pre-filled with Job Title, Company Name, Location, Salary Range, Job Description, then "Saved to Application Tracker!" | The **Save to Application Tracker** button | "Candidates come for free tools. One click and the job's tracked." |
-| 3 | Application Tracker (Priya) | `/hub?tab=tracker` · `KanbanBoard` | 7 cards across Saved, Applied, Initial Screen, Interviewing, Final Round, Offer and Archived, including the job just clipped | The Demo Inc card in **Final Round** | "Every application, every stage, in one place." |
-| 4 | Job Matching (Priya) | `/hub?tab=job-matching` · `JobMatchReportCard` | "Is this role worth your time?", **Strong target** badge, Overall match 82, Capability, WorkPrint, Resume used, and the requirement-level evidence table | The **Strong target** badge and Overall match tile | "She knows where she fits before she applies." |
-| 5 | Interview Coach (Priya) | `/hub?tab=coach` · `Jen3SetupCard`, then **Interview Coach Debrief** (`CoachResultsOverlay`) | Setup set to **Final Round**, **Coach Mode**, **Standard** depth, then a completed session: Overall score, breakdown cards, Summary, Strengths with quotes, Areas to Improve, **Priority Action** | The **Priority Action** card | "Conversational coaching builds real interview strength, not scripted AI answers." |
+| 2 | Chrome extension (Priya) | **Shortlistr Application Tracker** extension side panel, on a fictional Demo Inc job ad hosted on shortlistr.io | Side panel pre-filled with Job Title, Company Name, Location, Salary Range, Recruiter / Hiring Contact and Job Description, then "Saved to Application Tracker!" | The **Save to Application Tracker** button | "Candidates come for free tools. One click and the job's tracked." |
+| 3 | Application Tracker (Priya) | **Step 1:** `/hub?tab=tracker` · `ApplicationsTab` › `KanbanBoard`. **Step 2 (Next):** the Demo Inc card opens in the **Application Details** modal on its **Overview** tab | **Step 1:** the **Active** board with one card in every column from Saved to Offer, the clipped Demo Inc card in **Saved**, and "Archived (post-review): 2". **Step 2:** the full application: header, Current Stage, Demo Inc's Silent Rejection Risk badge, and every Overview field (see [Screen 3: tracker](#screen-3-tracker)) | Step 1: the Demo Inc card. Step 2: the Silent Rejection Risk badge | "Every application, every detail, in one place. And a warning before she invests." |
+| 4 | Job Matching (Priya) | `/hub?tab=job-matching` · `HubJobMatchView`. **Step 1:** the input view. **Step 2 (Next):** **Run match** → analysing state → results view with `JobMatchReportCard` | **Step 1:** Job title, Company, "Resume for this match", Job ad text and **Balanced** emphasis, all pre-filled from the clipped ad. No score shows yet. **Step 2:** "Is this role worth your time?", **Strong target**, Overall match 82, Capability, WorkPrint, Resume used, requirement-level evidence | Step 1: the **Run match** button. Step 2: the **Strong target** badge | "She knows where she fits before she applies." |
+| 5 | Interview Coach (Priya) | `/hub?tab=coach&application_id=<demo-inc-app-id>` · `HubCoachView`. **Step 1:** the coach page. **Step 2 (Next):** a past session opens in `CoachingFeedbackModal` | **Step 1:** "Practise with Interview Coach", the setup card (01 What are you preparing for?, 02 What stage are you preparing for? set to **Final Round**, 03 How do you want to practise? set to **Coach Mode** and **Standard**), "Jen's ready to build your interview" with its chips, the Tip card and **Recent sessions · 3 total**. **Step 2:** the Demo Inc Final Round session: Strengths, Areas to Improve, Coach Note, Dimension Scores, Topics Covered | Step 1: the top **Recent sessions** card. Step 2: **Dimension Scores** | "Conversational coaching builds real interview strength, not scripted AI answers." |
 | 6 | Employer profile, candidate view (Priya) | `/employer-profile/:id` · Overview tab | Demo Inc: CEI 69, **Silent Rejection Risk Score** bar, Monthly trend, CEI dimensions, Recent reviews, and the Reviews / Would apply again / Feedback rate / Promise adherence tiles | The CEI ring and the Silent Rejection Risk Score bar | "She can see inside their hiring process before she applies." |
-| 7 | Silence (Priya) | `/hub?tab=tracker&app=<demo-inc-app-id>` · `ApplicationCard` + `InactivityPrompt` | Demo Inc card 31 days in Final Round: **Likely Silent Rejection** chip and "Have you heard back from Demo Inc?" with **Contact Recruiter**, **Mark as Ghosted** and **Keep Tracking** | **Mark as Ghosted** | "Thirty days, nothing. That silence becomes data." |
-| 8 | Stage review (Priya) | `/submit-review-v2?application_id=…` · `StageReviewForm` | Pre-filled review of Demo Inc's Final Round: 5 dimension ratings, outcome **Ghosted**, "What stood out positively?" and "What could have been better?" | The dimension ratings | "Her review is about one stage, so it's specific and fair." |
+| 7 | Silence (Priya) | `/hub?tab=tracker&app=<demo-inc-app-id>` · **Application Details** modal (`ApplicationCard` expanded, `ExpandedCardHeader`, `NudgeBanner`) | Demo Inc card 31 days in Final Round, opened: Current Stage **Final Round**, Demo Inc's Silent Rejection Risk badge, and the **LIKELY SILENT REJECTION · 31 DAYS** banner with **Draft Follow-up**, **Update Status** and **Mark as Ghosted** | **Mark as Ghosted** | "Thirty days, nothing. That silence becomes data." |
+| 8 | Stage review (Priya) | Same modal, **Review** tab › **Submit Final Round Review** (`InlineStageReview`) | Pre-filled review of Demo Inc's Final Round: 5 dimension ratings, outcome **Ghosted**, "What stood out positively?" and "What could have been better?" | The dimension ratings | "Her review is about one stage, so it's specific and fair." |
 | 9 | Review submitted (Priya) | `ReviewSuccess`, plus a demo-only trust explainer | "Your review is pending moderation", Your CEI Contribution, then a card listing the real moderation pipeline (see [Trust explainer](#screen-9-trust-explainer)) | The pipeline list | "Every review is checked before it's published. Independent and careful by design." |
 | 10 | Employer Hub Overview (Sam Lee, Demo Inc) | `/employer-hub` · Hub Overview (`OverviewTab`) | Active team, Total reviews 27, Awaiting response, AI credits, CEI Score 69, CEI Dimension scores, **Silent Rejection Score** 27 · Moderate, Recent Reviews, AI Insights, CEI by Stage, Partnerships Performance, Benchmark CEI | The **Silent Rejection Score** ring | "This is what talent teams pay for, from A$499 a month." |
 | 11 | Explore Data Hub (Sam Lee) | `/employer-hub` · Explore Data Hub › **Insights & Reporting**, then **Silent Rejection** | CEI trend (12 months), Sentiment arc dipping at **Final Round**, then SRR 14.3% against a peer median of 7.1% | The Final Round dip | "They see exactly where they lose people." |
@@ -138,17 +139,71 @@ Every screen except 1, 9 and 15 is the production screen at the route shown. Scr
 - The extension signs in by reading the access token from any open Shortlistr tab. In a demo, that tab belongs to the founder, so a clip would land in the founder's own tracker, not Priya's. The extension needs a demo sign-in path, or this screen uses the recorded fallback.
 - If the extension isn't installed or signed in, screen 2 plays a short recorded clip and the demo carries on.
 
+#### Screen 3: tracker
+
+The tracker that ships is `ApplicationsTab` › `KanbanBoard` › `ApplicationCard`. `KanbanCard`, `KanbanColumn.jsx`, `KanbanDetailPanel` and `InactivityPrompt` are orphaned files that nothing imports, so don't build against them.
+
+**Step 1, the board:**
+
+- An **Active** / **All** toggle, "N active", **Add Application**, and "Archived (post-review): N" above the board. **Active** hides every terminal stage (Hired, Withdrew, Unsuccessful, Ghosted).
+- Columns of 240px: Saved, Applied, Initial Screen, Interviewing, Assessment, Final Round, Offer, Hired ✓, Archived. Each column header has a count and a **+**. Each column ends with **Add Application**, and Saved also shows "Save jobs via Chrome Extension". An empty column shows "Drop here".
+- Each collapsed card shows the company logo, job title, company name and a chevron. Below that are a **Direct** or **Agency** pill, the column pill, and any of **✓ Reviewed**, **Review Pending**, **Silent Rejection Risk** or **Interview scheduled**, then a "N days ago · date" footer.
+- At 1280×720 with the hub sidebar, only about four columns fit. The board scrolls sideways, so the demo must scroll it to keep the Demo Inc card in view.
+
+**Step 2, the opened card.** Clicking a card opens a centred **Application Details** modal, not an inline expand:
+
+- **Header:** a 48px logo, job title, company, a matched-company link, Date Created, a **Current Stage** select, and the employer's **Silent Rejection Risk** badge
+- **Nudge banner**, from 14 days in stage
+- **Tabs:** **Overview**, **Interview Brief**, **Review**, **Journey**, **Documents**, **Notes** and **Follow-up**
+- **Overview fields:** Hiring Party Type, Applied Via, Company Website, Company, Recruiter Name, Recruiter Email, Location, Industry, Salary Range, Salary Disclosed At, Work Model, WFH Days Per Week, Employment Type, the job ad link, Benefits on Offer, Other Benefits, Pension / Superannuation, Leave and WFH Confirmed
+- **Footer:** **Delete** and **Save Changes**, both disabled in Demo mode
+
+Seed every Overview field on the Demo Inc card, so the modal shows a complete application with no blanks. The **Review** tab won't open a review until **Applied Via** and the recruiter details are filled, so screen 8 depends on this too.
+
 #### Screen 4: Job Match
+
+The match must not exist on screen until **Run match** is clicked, so screen 4 has two steps:
+
+1. **Input view.** This is what **New match** (or **Run a match** on the empty state) opens. It has Job title, Company, "Resume for this match" (Priya's Base resume), Job ad text (the clipped Demo Inc ad), "This role is through a recruiting agency" (unticked) and "What matters more in this search?" (**Balanced**). The callout points at **Run match**.
+2. **Next clicks Run match.** In Demo mode this calls no backend function. It shows the real analysing state for about a second, then opens the results view from the stored `JobMatchSession`.
+
+The button in the app reads **Run match**. If you want it to read **Run Job Match**, that's a copy change to the production screen, not a demo setting.
 
 The badge is derived, not stored. **Strong target** only shows when the overall match is 80 or more and no **required** requirement is classified as **Required gap** or **Not shown**. Seed Priya's gaps (for example, "marketplace pricing experience") as **preferred** requirements classified **Transferable**. Otherwise the badge drops to **Selective target** or **Validate first**.
 
 #### Screen 5: coaching
 
-Show a completed `CoachingSession`, not a live call. The real session is an ElevenLabs voice call with Jen, which v1 rules out. If you want the stored 10-second audio clip, play it inside the real voice UI from a file, with the session start disabled.
+Use the real Interview Coach tab (`HubCoachView`), not the post-call debrief overlay.
+
+**Step 1, the coach page:**
+
+- **Header:** "Practise with Interview Coach" and "Build an interview around the role, level and stage you're preparing for."
+- **Left: the setup card (`Jen3SetupCard`).** Opening it with `application_id` links it to the Demo Inc application, which hides the General Practice / Targeted Interview choice.
+  - **01 What are you preparing for?** Role title "Senior Product Manager", Seniority "Senior"
+  - **02 What stage are you preparing for?** Interview stage **Final Round** ("Executive or cross-functional panel")
+  - **03 How do you want to practise?** **Coach Mode** and **Interview Mode** cards with **Coach Mode** selected, then Session depth **Quick**, **Standard** or **Deep** with **Standard** selected ("~15 min · 5–6 questions")
+  - **Summary:** "Jen's ready to build your interview", chips for each choice, "N sessions remaining this month", the transcription consent notice, and the start button, disabled in Demo mode
+- **Right:** the Tip card ("Find a quiet space and allow microphone access…"), then **Recent sessions · 3 total**. Each session row shows a score tile out of 100, "role · company", the date, a stage pill and a one-line summary.
+
+**Step 2, the session detail.** Next opens the top session (Demo Inc · Senior Product Manager · Final Round) in `CoachingFeedbackModal`:
+
+- **Header:** the score badge (**Strong**, **Solid**, **Developing** or **Needs Work** with the score) and "N min session"
+- **Sections:** **✦ Strengths** (`coaching_outcomes`), **Areas to Improve** (`recommended_next_steps`), **Coach Note** (`ai_feedback_summary`), **Dimension Scores** and **Topics Covered**, plus a **Full Transcript** toggle
+- **Dimension Scores** are clarity, structure, confidence and relevance as percentages, from `ai_feedback_breakdown`
+
+Seed 3 completed `CoachingSession` records with every one of those fields, so no section is missing. No live session starts, so nothing calls ElevenLabs. Drop the 10-second audio clip unless it's played from a stored file.
 
 #### Screen 7: silence
 
-The nudge thresholds run off days in the current stage (`last_stage_change_at`): 14 days shows the nudge banner, 20 days shows **Silent Rejection Risk** and 30 days shows **Likely Silent Rejection**. Seed the Demo Inc card 31 days into Final Round. **Mark as Ghosted** writes to `Application`, `ApplicationStageEvent` and `CandidateNotification`. In Demo mode it must write nothing and advance to screen 8.
+The thresholds run off days in the current stage (`last_stage_change_at`):
+
+| Days in stage | Collapsed card on the board | Banner in the opened card |
+|---|---|---|
+| 14–19 | No pill | **STALLED — FOLLOW UP · N DAYS**, with **Draft Follow-up** and **Update Status** |
+| 20–29 | **Silent Rejection Risk** pill | **SILENT REJECTION RISK · N DAYS**, with the same buttons |
+| 30+ | No pill (see [defects](#production-defects-found-during-the-audit)) | **LIKELY SILENT REJECTION · N DAYS**, "Silent rejection is highly likely…", plus **Mark as Ghosted** |
+
+Open the Demo Inc card straight into the modal with `/hub?tab=tracker&app=<id>`, so the board's missing pill doesn't matter on this screen. **Mark as Ghosted** calls `confirmGhosted`. In Demo mode it must write nothing, show **✓ Ghosted** in the banner, and switch to the **Review** tab for screen 8.
 
 #### Screen 9: trust explainer
 
@@ -180,7 +235,7 @@ All names, logos and numbers on screen are fictional. Demo Inc's scores are copi
 
 | Persona | Role in demo | Key data |
 |---|---|---|
-| Priya Nair | Candidate | Senior Product Manager in Melbourne, **CandidatePlus**, complete `CandidateProfile` (`profile_status: complete`), 7 tracked applications, Career Memory filled in, 3 completed coaching sessions |
+| Priya Nair | Candidate | Senior Product Manager in Melbourne, **CandidatePlus**, complete `CandidateProfile` (`profile_status: complete`), a Base resume, 9 tracked applications, Career Memory filled in, 3 completed coaching sessions |
 | Demo Inc | Employer | Clone of Helply's scores and reviews. Fictional name, logo, website and address. **Pro** tier (`growth`) |
 | Sam Lee | Employer admin | Head of Talent at Demo Inc. `org_role: admin`. Persona for screens 10–12 and 14 |
 | Sample Recruitment | Agency | Tech and product specialist, **AgencyPlus** or higher so the Marketplace listing shows, 3 employer partnerships |
@@ -188,19 +243,29 @@ All names, logos and numbers on screen are fictional. Demo Inc's scores are copi
 
 ### Priya's applications (screen 3)
 
-| Employer | Role | Tracker column (stored stage) | Card state |
-|---|---|---|---|
-| Northwind Labs | Product Lead | Saved (`Saved`) | Clipped from the extension on screen 2 |
-| Bluegum Health | Senior PM | Applied (`Applied`) | 15 days in stage, nudge banner showing |
-| Harbour & Co | Group PM | Initial Screen (`RecruiterScreen`) | Active |
-| Demo Inc | Senior Product Manager | Final Round (`FinalRound`) | Active on screen 3, 31 days in stage on screen 7 |
-| Kestrel Retail | Senior PM | Offer (`Offer`) | Offer received |
-| Tandem Finance | Product Manager | Archived (`Ghosted`) | Ghosted (confirmed) |
-| Lyrebird Group | Senior PM | Archived (`Unsuccessful`) | Rejected with feedback |
+One card in every column from Saved to Offer, so no column shows "Drop here":
 
-<Note>
-  Screens 3 and 7 show the same Demo Inc card at two points in time. Store `last_stage_change_at` so the card reads as active on screen 3, then shift it to 31 days for screen 7, either with two seeded snapshots or a demo-time clock.
-</Note>
+| Employer | Role | Tracker column (stored stage) | Collapsed card shows |
+|---|---|---|---|
+| Demo Inc | Senior Product Manager | Saved (`Saved`) | Direct · Saved · "Today". Clipped on screen 2. Every Overview field seeded |
+| Northwind Labs | Product Lead | Applied (`Applied`) | Direct · Applied |
+| Bluegum Health | Senior PM | Initial Screen (`RecruiterScreen`) | Agency · Initial Screen · **Silent Rejection Risk** (22 days in stage) |
+| Harbour & Co | Group PM | Interviewing (`Interviewing2`) | Direct · Interviewing · **Interview scheduled** |
+| Wattle Energy | Senior PM | Assessment (`Assessment`) | Direct · Assessment · **✓ Reviewed** |
+| Lyrebird Group | Product Manager | Final Round (`FinalRound`) | Direct · Final Round · **Review Pending** |
+| Kestrel Retail | Senior PM | Offer (`Offer`) | Direct · Offer |
+| Tandem Finance | Product Manager | Archived (`Ghosted`), hidden in Active | Counted in "Archived (post-review): 2" |
+| Corella Bank | Group PM | Archived (`Unsuccessful`), hidden in Active | Counted in "Archived (post-review): 2" |
+
+### Story timeline
+
+The Demo Inc application appears at three points in time. Seed one snapshot per point, or drive `last_stage_change_at` and `stage` from a demo clock:
+
+| Screens | Demo Inc card | Why |
+|---|---|---|
+| 2–4 | **Saved**, today | Clipped, opened and matched before she applies |
+| 5–6 | **Final Round**, interview in 2 days | She's preparing for the final interview |
+| 7–8 | **Final Round**, 31 days in stage, interview passed, not reviewed | Silence, then **Mark as Ghosted** and the review |
 
 ### Demo Inc scores (screens 6, 10, 11 and 12)
 
@@ -294,6 +359,9 @@ These show up on demo screens, so fix them before recording:
 |---|---|---|
 | The Sentiment arc uses stage keys `Interview` and `Closure`, which reviews never store (they store `InterviewingR1–R3` and exit keys) | `src/components/employerhub/AnalyticsTab.jsx` | Interview and closure bars are always empty on screen 11 |
 | `/submit-review` forwards to `/submit-review-v2` but drops `outcome_status` | `src/pages/SubmitReview.jsx` | **Mark as Ghosted** → "Close the loop" opens a review without the Ghosted outcome pre-filled |
+| A collapsed tracker card shows **Silent Rejection Risk** from 20 to 29 days, then drops the pill at 30 days, exactly when the risk is highest | `src/components/candidatehub/ApplicationCard.jsx` (`silentRejectionRisk && !likelySilentRejection`) | On the board, a 30+ day card looks healthy |
+| The coach upgrade notice says "Interview Coach is available on the Prepare and Advance plans", but the plans are CandidatePlus and CandidatePro | `src/components/coach/Jen3SetupCard.jsx` | Wrong plan names if the notice ever shows |
+| `KanbanCard`, `KanbanColumn.jsx`, `KanbanDetailPanel` and `InactivityPrompt` aren't used by the live tracker | `src/components/candidatehub/` | Dead code that misleads anyone speccing or building against the tracker |
 | `docs/test-accounts.md` lists Helply as `69e278e1…`, which is now the agency HelplyAgency | `src/docs/test-accounts.md` | Anyone seeding from that doc copies the wrong company |
 
 ## Acceptance criteria
@@ -301,6 +369,9 @@ These show up on demo screens, so fix them before recording:
 - A founder can start the Full story track and reach screen 15 using only **Next**, with no other clicks
 - Each of the four tracks shows exactly the screens listed for it, in order
 - Screens 2–8 and 10–14 render the production page at the listed route, with no demo-only copy of that page anywhere in the codebase
+- On screen 3, the Demo Inc card opens into the **Application Details** modal with every Overview field filled
+- On screen 4, no match score is visible until **Run match** is clicked
+- On screen 5, the Interview Coach tab matches production (setup card, Tip, **Recent sessions**), and the session detail opens with every section filled
 - **Back**, **Next**, ←, →, N, R and Esc work on every screen
 - Every screen shows populated demo data, with no empty states, no locked or **Gated** panels, no "Insufficient data" or "Building signal", and no spinner after 1 second
 - Demo Inc's numbers match wherever they appear (for example, CEI 69 on screens 6 and 10, and 27 reviews on screens 6 and 10)
