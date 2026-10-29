@@ -1,0 +1,339 @@
+---
+title: "Guided Demo Mode — requirements (v2)"
+sidebarTitle: "Guided Demo Mode"
+description: "Uplifted requirements for Guided Demo Mode, rewritten against the production Shortlistr app so every screen, label, metric and data point matches what the app actually ships."
+---
+
+**Version 2 · 29 October 2026 · supersedes v1 (30 October 2026, @Marcus)**
+
+Guided Demo Mode lets a founder run the full Shortlistr product story in the production app, using fixed sample data, by clicking **Next**. It serves the Startmate demo video, investor meetings and customer demos.
+
+<Warning>
+  **Why this version exists.** v1 described screens, labels and data the app doesn't have, and the build followed v1 rather than the app. The current build (`/demo`) renders 14 purpose-built mock components from `src/demo/demoSeed.js`. None of them is a production screen, so the demo shows an app that doesn't exist. v2 rewrites every screen against the real routes, tabs, components and records, and lists what has to change in the build.
+</Warning>
+
+## What changed from v1
+
+### The current build
+
+| Area | v1 said | What was built | What the app actually has |
+|---|---|---|---|
+| Screens | "Every screen is the real production screen, loaded with demo data" | 14 mock components in `src/components/demo/screens/`, rendered on `/demo` | Real screens at `/hub`, `/employer-hub`, `/agency-hub`, `/employer-profile/:id`, `/agency-profile/:id`, `/submit-review-v2` |
+| Data | `is_demo = true` records in production entities | A frozen JS seed file; no entity is read | No entity has an `is_demo` field. Every record carries the platform's built-in `is_sample` flag (all `false` today) |
+| Personas | "Logged in as the right sample persona for each screen" | Not attempted | Every hub resolves data from the signed-in user (`base44.auth.me()`), so impersonation needs a new layer (see [Demo identity](#demo-identity)) |
+| Logging | Start, finish and abandon logged | Built (`DemoRun` entity, admin-only RLS) | Keep as is |
+| Entry point | **Start demo** in the account menu | Built (`NavAuthControl` mega menu → `/demo`) | Keep as is |
+
+### Screens and data that don't match the app
+
+| v1 element | Reality in production | v2 decision |
+|---|---|---|
+| Job Match score, gaps and "Why this role?" on the Demo Inc tracker card | The tracker card has no match score. Job Match is its own hub tab (`/hub?tab=job-matching`) showing the **Job match report card** | Separate screen on the Job Matching tab |
+| Coaching "Second Round", "Coach mode", 10-second clip | Jen's setup offers General Practice, Recruiter Screen, First Round, Technical / Functional, Panel, Final Round, Salary Negotiation. Modes are **Coach Mode** and **Interview Mode**. Sessions are live ElevenLabs voice calls | Use **Final Round** + **Coach Mode**. Show a completed session's **Interview Coach Debrief**, not a live call |
+| Day-30 email "Has the employer stopped communicating with you?" | No such email exists. The tracker card nudges at 14 days, shows **Silent Rejection Risk** at 20 days and **Likely Silent Rejection** at 30 days, with an in-card prompt "Have you heard back from …?" | Use the real in-card nudge and **Mark as Ghosted** |
+| Trust checks turning green after submit | No candidate-facing check list exists. After submitting, the candidate sees "Your review is pending moderation" | Show the real success screen, plus one demo-only explainer card naming the real pipeline steps |
+| Employer hub "CEI trend", "Silent Rejection Risk bar", "weekly summary" | Hub Overview has no trend, no risk bar and no weekly summary. Trend lives in **Explore Data Hub › Insights & Reporting** | Use the real Hub Overview, then Explore Data Hub |
+| Recruiter-level results (employer, 4 recruiters; agency, 5 of 12) | **Team Performance** is a placeholder in both hubs: "We're building this page…". Helply has one team member and every review names a variant of the same test recruiter | Removed from v1 scope (see [Out of scope](#out-of-scope-for-v1)) |
+| Market insights (salary expectations, benefits peers offer, applicant quality) | Not built anywhere in the app | Removed from v1 scope |
+| Agency Marketplace "public profile" | The Agency Marketplace is a gated tab inside the employer hub. The public agency page is `/agency-profile/:id` | Show the marketplace from the employer's side |
+| Demo Inc CEI 74, SRR 11%, "Elevated" | Helply's live record: CEI **69** (high confidence), **27** reviews, SRR **14.3%** against a peer median of **7.1%**, SRRS **27 · Moderate** | Use Helply's real numbers |
+| "Second round is the weakest stage" | Helply's weakest stage is **Final Round** (stage CEI 4.7 / 10) | Rebuild the story around Final Round |
+| Priya ghosted by Tandem Finance, then Demo Inc replies to her review | Contradiction: Demo Inc can't reply to a review of Tandem Finance | Priya is ghosted by Demo Inc after the Final Round |
+| Priya on "Plus tier" | Candidate plans are Free, **CandidatePlus** (from A$19) and **CandidatePro** (A$29). Interview Coaching needs CandidatePlus | Priya is on CandidatePlus |
+| Stage names "Second round", "First round", "Recruiter screen" | Tracker columns: Saved, Applied, Initial Screen, Interviewing, Assessment, Final Round, Offer, Hired ✓, Archived | Use the real column and stage labels |
+| "The existing Helply demo employer record" | Helply (`6a071964e7dc1cf752403c69`) is a claimed production employer with a real logo, website, LinkedIn and Elwood office address. `docs/test-accounts.md` points at `69e278e1…`, which is now **HelplyAgency**, an agency | Clone Helply's scores into a separate Demo Inc record. Never relabel the live Helply record |
+
+## Purpose and scope
+
+There's one demo, built into the product, that tells the same story every time. You follow one candidate's application from the candidate's side through to the employer's and agency's dashboards.
+
+### Who uses it
+
+- **Founders:** the Startmate video and Loom, investor meetings, Demo Day
+- **Customer demos:** prospective employers, agencies and Lab partners, run live by a founder on a call
+- **No self-serve for now:** founders run every demo
+
+### What it must do
+
+- Move through a fixed sequence of **real production screens** with one **Next** button, plus **Back**
+- Show fully populated sample data on every screen, with no empty states, no "Insufficient data", no "Building signal" and no locked or **Gated** panels
+- Highlight the one thing that matters on each screen with a callout
+- Offer short tracks for a candidate, employer or agency audience
+- Never touch real user data, send a notification or email, spend AI credits or call an AI model
+
+### Out of scope for v1
+
+- Editing demo data in the app (data is seeded and reset from a fixed set)
+- Personalising the demo with a prospect's real company name or logo
+- Live AI interactions during the demo (outputs are pre-generated)
+- The public self-serve version on the marketing site
+- **Recruiter-level reporting** (employer and agency **Team Performance**). It returns to the demo once the page ships.
+- **Market insights** (salary expectations, benefits peers offer, applicant quality). It returns to the demo once the feature ships.
+
+This builds on the Lab decision to show seeded data through a Live/Demo toggle in the live environment, not a separate sandbox site.
+
+## How it works
+
+### Starting a demo
+
+- **Start demo** in the account menu (already built in `NavAuthControl`) opens `/demo`. Only platform admins (`role: admin`) can see or open it.
+- The start screen picks a track and takes an optional **Presenting to** name, which only changes the welcome line (for example, "Welcome, Startmate"). This is already built.
+- Starting a demo sets Demo mode on, then navigates to the **real route** for screen 1 of the track. Each screen loads the real page as the right demo persona. Your own account and data are untouched.
+
+### Tracks
+
+| Track | Screens | Length | Use for |
+|---|---|---|---|
+| Full story | 1–15 | About 2½ minutes | Investors, Startmate, Demo Day |
+| Candidate | 1–9, 15 | About 1½ minutes | Candidate partners, launch content |
+| Employer | 1, 6, 7, 8, 10–12, 14, 15 | About 2 minutes | Prospective employers, Lab partners |
+| Agency | 1, 6, 8, 13, 14, 15 | About 1½ minutes | Prospective agencies |
+
+### Demo bar
+
+The demo bar sits fixed at the bottom of every screen, above the hub's own chrome. This is already built in `DemoBar`.
+
+- **Back** and **Next** buttons, plus the ← and → keys
+- Progress, for example "5 of 15 · Interview Coach"
+- **Notes** (N key) toggles a presenter panel with the talking point. It's hidden by default and never shows in recordings unless turned on.
+- **Restart** (R key) and **Exit demo** (Esc)
+- A persistent **DEMO MODE** pill, so a presenter never mistakes it for live data
+
+### Callouts
+
+Each screen opens with one callout pointing at the feature that matters. It fades after three seconds or on the first click, and callouts can be switched off for a clean recording. Callouts must anchor to the **real element** on the production screen (via a `data-demo-anchor` attribute), not to mock markup.
+
+### Navigation inside a screen
+
+You can scroll, hover and switch tabs within a screen. Any action that would change data, send a message or start a session is blocked with a small "Disabled in demo" tooltip. Where the story needs an in-app step (opening a card, switching a tab, opening a modal), the demo performs it on **Next**.
+
+## Screen-by-screen flow
+
+Every screen except 1, 9 and 15 is the production screen at the route shown. Screens 1 and 15 are demo-only cards. Screen 9 is the production success screen plus one demo-only explainer card.
+
+| # | Screen (persona) | Real route and component | Demo data shown | Callout | Talking point |
+|---|---|---|---|---|---|
+| 1 | Welcome card | Demo overlay | "Day 30. You applied. You interviewed. Then nothing." Optional **Presenting to** line | None | "Meet Priya. She's applying for a Senior Product Manager role at Demo Inc." |
+| 2 | Chrome extension (Priya) | **Shortlistr Application Tracker** extension side panel, on a fictional job ad hosted on shortlistr.io | Side panel pre-filled with Job Title, Company Name, Location, Salary Range, Job Description, then "Saved to Application Tracker!" | The **Save to Application Tracker** button | "Candidates come for free tools. One click and the job's tracked." |
+| 3 | Application Tracker (Priya) | `/hub?tab=tracker` · `KanbanBoard` | 7 cards across Saved, Applied, Initial Screen, Interviewing, Final Round, Offer and Archived, including the job just clipped | The Demo Inc card in **Final Round** | "Every application, every stage, in one place." |
+| 4 | Job Matching (Priya) | `/hub?tab=job-matching` · `JobMatchReportCard` | "Is this role worth your time?", **Strong target** badge, Overall match 82, Capability, WorkPrint, Resume used, and the requirement-level evidence table | The **Strong target** badge and Overall match tile | "She knows where she fits before she applies." |
+| 5 | Interview Coach (Priya) | `/hub?tab=coach` · `Jen3SetupCard`, then **Interview Coach Debrief** (`CoachResultsOverlay`) | Setup set to **Final Round**, **Coach Mode**, **Standard** depth, then a completed session: Overall score, breakdown cards, Summary, Strengths with quotes, Areas to Improve, **Priority Action** | The **Priority Action** card | "Conversational coaching builds real interview strength, not scripted AI answers." |
+| 6 | Employer profile, candidate view (Priya) | `/employer-profile/:id` · Overview tab | Demo Inc: CEI 69, **Silent Rejection Risk Score** bar, Monthly trend, CEI dimensions, Recent reviews, and the Reviews / Would apply again / Feedback rate / Promise adherence tiles | The CEI ring and the Silent Rejection Risk Score bar | "She can see inside their hiring process before she applies." |
+| 7 | Silence (Priya) | `/hub?tab=tracker&app=<demo-inc-app-id>` · `ApplicationCard` + `InactivityPrompt` | Demo Inc card 31 days in Final Round: **Likely Silent Rejection** chip and "Have you heard back from Demo Inc?" with **Contact Recruiter**, **Mark as Ghosted** and **Keep Tracking** | **Mark as Ghosted** | "Thirty days, nothing. That silence becomes data." |
+| 8 | Stage review (Priya) | `/submit-review-v2?application_id=…` · `StageReviewForm` | Pre-filled review of Demo Inc's Final Round: 5 dimension ratings, outcome **Ghosted**, "What stood out positively?" and "What could have been better?" | The dimension ratings | "Her review is about one stage, so it's specific and fair." |
+| 9 | Review submitted (Priya) | `ReviewSuccess`, plus a demo-only trust explainer | "Your review is pending moderation", Your CEI Contribution, then a card listing the real moderation pipeline (see [Trust explainer](#screen-9-trust-explainer)) | The pipeline list | "Every review is checked before it's published. Independent and careful by design." |
+| 10 | Employer Hub Overview (Sam Lee, Demo Inc) | `/employer-hub` · Hub Overview (`OverviewTab`) | Active team, Total reviews 27, Awaiting response, AI credits, CEI Score 69, CEI Dimension scores, **Silent Rejection Score** 27 · Moderate, Recent Reviews, AI Insights, CEI by Stage, Partnerships Performance, Benchmark CEI | The **Silent Rejection Score** ring | "This is what talent teams pay for, from A$499 a month." |
+| 11 | Explore Data Hub (Sam Lee) | `/employer-hub` · Explore Data Hub › **Insights & Reporting**, then **Silent Rejection** | CEI trend (12 months), Sentiment arc dipping at **Final Round**, then SRR 14.3% against a peer median of 7.1% | The Final Round dip | "They see exactly where they lose people." |
+| 12 | Respond to a review (Sam Lee) | `/employer-hub` · Recent Reviews › **Respond** (`ReviewDetailModal`, `RespondModal`) | Priya's Final Round review with a pre-filled reply ready to publish (**Publish Response** disabled) | The reply box | "Employers can reply. They can't delete." |
+| 13 | Agency Hub Overview (Jess Morgan, Sample Recruitment) | `/agency-hub` · Hub Overview (`OverviewTab`, agency persona) | Agency CEI, CEI Dimension scores, Silent Rejection Score, Recent Reviews and **Partnerships Performance** across 3 employer clients | **Partnerships Performance** | "Agencies see how candidates experience them, client by client." |
+| 14 | Agency Marketplace (Sam Lee) | `/employer-hub` · Network › **Agency Marketplace** (`MarketplaceTab`, `AgencyDetail`) | Sam browses agencies and opens Sample Recruitment: CEI, specialisms, services and published commercial terms | Sample Recruitment's CEI on its card | "Agencies win clients on proof, not promises, from A$149 a month." |
+| 15 | Close card | Demo overlay | "Free to use. Paid for the intelligence. Launching 30 November." shortlistr.io | None | "Every experience counts." |
+
+### Screen notes
+
+#### Screen 2: extension
+
+- The side panel is titled **Application Tracker** and saves with **Save to Application Tracker**. A save creates a `JobTrayItem` and an `Application` at stage **Saved** through `saveFromExtension`.
+- The extension only injects its job-capture script on Seek, LinkedIn and Indeed. shortlistr.io only gets the sign-in script. A job ad page hosted on shortlistr.io needs a site adapter and a new extension release through Chrome Web Store review, so plan for that lead time.
+- The extension signs in by reading the access token from any open Shortlistr tab. In a demo, that tab belongs to the founder, so a clip would land in the founder's own tracker, not Priya's. The extension needs a demo sign-in path, or this screen uses the recorded fallback.
+- If the extension isn't installed or signed in, screen 2 plays a short recorded clip and the demo carries on.
+
+#### Screen 4: Job Match
+
+The badge is derived, not stored. **Strong target** only shows when the overall match is 80 or more and no **required** requirement is classified as **Required gap** or **Not shown**. Seed Priya's gaps (for example, "marketplace pricing experience") as **preferred** requirements classified **Transferable**. Otherwise the badge drops to **Selective target** or **Validate first**.
+
+#### Screen 5: coaching
+
+Show a completed `CoachingSession`, not a live call. The real session is an ElevenLabs voice call with Jen, which v1 rules out. If you want the stored 10-second audio clip, play it inside the real voice UI from a file, with the session start disabled.
+
+#### Screen 7: silence
+
+The nudge thresholds run off days in the current stage (`last_stage_change_at`): 14 days shows the nudge banner, 20 days shows **Silent Rejection Risk** and 30 days shows **Likely Silent Rejection**. Seed the Demo Inc card 31 days into Final Round. **Mark as Ghosted** writes to `Application`, `ApplicationStageEvent` and `CandidateNotification`. In Demo mode it must write nothing and advance to screen 8.
+
+#### Screen 9: trust explainer
+
+The candidate never sees a check list in the real app, so this card is demo-only and must be labelled as an explainer, not a product screen. List only steps the pipeline actually runs:
+
+1. **Verified account.** `createReview` applies the email-verification gate.
+2. **Duplicate check.** `checkDuplicateReview`.
+3. **Moderation and integrity.** `moderateReview` runs the Review Moderation Agent and the Review Integrity Agent in parallel.
+4. **Hard rules.** Raw email addresses, phone numbers, hate speech and self-harm signals are caught before publication.
+5. **Audit and escalation.** Every decision goes to `ModerationAuditLog`. Anything unresolved becomes a `ComplianceCase`.
+
+Don't claim "legal and defamation" checks unless the moderation prompt is confirmed to run them.
+
+#### Screen 10: employer overview
+
+- When the SRRS gate is met, the ring shows the **Silent Rejection Risk Score** (27 · Moderate for Helply) and hides the "% rejection rate" line. Show the 14.3% SRR on screen 11 instead.
+- **Benchmark** needs the **Pro** tier (`growth`). **Silent Rejection** and **Funnel** need **Plus** (`reputation`). Seed Demo Inc on **Pro** so nothing renders locked. The talking point still quotes the EmployerPlus entry price.
+- The **AI credits** counter on this screen must show a fixed balance and never decrement.
+
+#### Screen 12: respond
+
+Only the **owner** and **admin** roles can respond to reviews, so Sam Lee must be one of those. Responses must be 30–1,500 characters and go through `moderateResponse`. Employers can flag a review (up to 3 flags every 30 days) but can't delete one.
+
+## Demo data set
+
+All names, logos and numbers on screen are fictional. Demo Inc's scores are copied from Helply's live record into a **separate** Demo Inc record, so every score is real seeded data and Helply's identity never appears.
+
+### Personas
+
+| Persona | Role in demo | Key data |
+|---|---|---|
+| Priya Nair | Candidate | Senior Product Manager in Melbourne, **CandidatePlus**, complete `CandidateProfile` (`profile_status: complete`), 7 tracked applications, Career Memory filled in, 3 completed coaching sessions |
+| Demo Inc | Employer | Clone of Helply's scores and reviews. Fictional name, logo, website and address. **Pro** tier (`growth`) |
+| Sam Lee | Employer admin | Head of Talent at Demo Inc. `org_role: admin`. Persona for screens 10–12 and 14 |
+| Sample Recruitment | Agency | Tech and product specialist, **AgencyPlus** or higher so the Marketplace listing shows, 3 employer partnerships |
+| Jess Morgan | Agency owner | `org_role: owner`. Persona for screen 13 |
+
+### Priya's applications (screen 3)
+
+| Employer | Role | Tracker column (stored stage) | Card state |
+|---|---|---|---|
+| Northwind Labs | Product Lead | Saved (`Saved`) | Clipped from the extension on screen 2 |
+| Bluegum Health | Senior PM | Applied (`Applied`) | 15 days in stage, nudge banner showing |
+| Harbour & Co | Group PM | Initial Screen (`RecruiterScreen`) | Active |
+| Demo Inc | Senior Product Manager | Final Round (`FinalRound`) | Active on screen 3, 31 days in stage on screen 7 |
+| Kestrel Retail | Senior PM | Offer (`Offer`) | Offer received |
+| Tandem Finance | Product Manager | Archived (`Ghosted`) | Ghosted (confirmed) |
+| Lyrebird Group | Senior PM | Archived (`Unsuccessful`) | Rejected with feedback |
+
+<Note>
+  Screens 3 and 7 show the same Demo Inc card at two points in time. Store `last_stage_change_at` so the card reads as active on screen 3, then shift it to 31 days for screen 7, either with two seeded snapshots or a demo-time clock.
+</Note>
+
+### Demo Inc scores (screens 6, 10, 11 and 12)
+
+Copy these from Helply (`6a071964e7dc1cf752403c69`) and freeze them in the seed file so they can't drift. Values as of 29 October 2026:
+
+| Metric | Value | Source field |
+|---|---|---|
+| CEI | 69, high confidence | `Company.cei_score`, `cei_confidence` |
+| Approved reviews | 27 | `CandidateStageReview` (`moderation_status: approved`) |
+| Silent Rejection Rate | 14.3% (peer median 7.1%) | `SilentRejectionMetric.srr`, `srr_peer_median` (period 2026-10) |
+| Silent Rejection Risk Score | 27 · Moderate | `SilentRejectionMetric.srrs`, `srrs_band` |
+| Would apply again | 70% | `Company.would_apply_again_rate` |
+| Feedback rate | 87.5% | `Company.feedback_rate` |
+| Weakest stage | Final Round (stage CEI 4.7 / 10) | Stage reviews |
+
+Before freezing, clean up the copied reviews:
+
+- **Test artefacts.** Job titles such as "test manager" and "Test Manager", and recruiter names that are all variants of one founder's name, show up in Recent Reviews. Rewrite them in the Demo Inc copy.
+- **Thin stage data.** Most stages have one review each, so the Final Round story rests on a single review. Add seeded Final Round reviews until the stage clears the display threshold with a clear gap to peers.
+- **AI summary.** Helply has no stored summary (`ai_summary` is empty and there's no `CEISummaryCache` row). Generate one once, review it, and store it with the demo data.
+- **Low risk confidence.** The SRRS confidence is "Low". Confirm it doesn't render a low-confidence badge, or seed enough eligible reviews to lift it.
+
+### Sample Recruitment (screens 13 and 14)
+
+No production agency has usable data (the best, HelplyAgency, has 7 reviews and "insufficient" confidence), so all of this is new seed:
+
+- Agency CEI 81 with enough approved reviews to show **high** confidence, and SRR 9%
+- 3 `Active` partnerships with fictional employers, each with attributed reviews, so **Partnerships Performance** has scores
+- A `MarketplaceProfile` with services and published commercial terms, so the marketplace card and detail are complete
+- Logos for the 3 clients, backed by `AgencyEmployerLogoPermission` records so they're allowed to render
+
+### Pre-generated content
+
+These are written once, stored with the demo data and never generated live: the Job Match session (`JobMatchSession` with `requirement_evidence` and WorkPrint dimensions), the coaching debrief (`CoachingSession` with transcript, score, breakdown and summary), the optional coaching audio clip, the Demo Inc AI summary and AI Insights, Priya's review text, and the employer's draft reply.
+
+## Technical and safety requirements
+
+### Demo identity
+
+The real screens can't show demo data today, because each one resolves "who am I" from the signed-in account:
+
+- `CandidateHub` sends anyone without a complete `CandidateProfile` to profile setup, then loads `Application` by the signed-in user's id
+- `EmployerHub` and `AgencyHub` find the company through `claimed_by_user_id`, `CompanyUser` or `org_id` on the signed-in user
+- Child components (coach setup, Job Match, tracker cards) call `base44.auth.me()` again on their own
+
+**Requirement:** add one effective-identity hook (for example `useEffectiveIdentity()`) that returns the demo persona's user, profile, company and org role while Demo mode is on, and the real user otherwise. Replace direct `base44.auth.me()` identity lookups on every screen in the demo path. Personas can't sign in directly. They're reachable only through Demo mode.
+
+### Isolation
+
+- Add an `is_demo` boolean to every entity the demo reads: `Company`, `CompanyUser`, `CandidateProfile`, `Application`, `ApplicationStageEvent`, `CandidateStageReview`, `ReviewResponse`, `SilentRejectionMetric`, `Partnership`, `JobMatchSession`, `CoachingSession`, `CareerMemory`, `MarketplaceProfile`, `AgencyEmployerLogoPermission` and `JobTrayItem`. Alternatively, confirm the platform's built-in `is_sample` flag can do this job.
+- Demo records never appear outside Demo mode. Exclude them in search and the Directory, the Agency Marketplace, `CEIRollup`, `calculateCEIBenchmarks`, `calculateSilentRejection` and `refreshSilentRejection`, `computeMonthlyReviewAggregate`, `emitCanonicalEvent` and `exportCanonicalEventToBigQuery`, analytics and admin reporting.
+- Demo Inc must not carry Helply's logo, website, LinkedIn, address, `company_id` or partnerships.
+
+### Read-only
+
+v1 said writes are "blocked at the backend function level". That isn't enough, because these screens also write straight to entities from the browser (for example `Application.update`, `ApplicationStageEvent.create` and `CandidateNotification.create` in the tracker, and the response in `RespondModal`).
+
+- Block writes to `is_demo` records with entity RLS for every non-service caller, **and** short-circuit the frontend handlers in Demo mode so the presenter sees "Disabled in demo" instead of an error.
+- Backend functions on the demo path must no-op in Demo mode: `generateCandidateInsights` (runs on Dashboard load), `refreshSilentRejection`, `confirmGhosted`, `createReview`, `postReviewProcessor`, `moderateResponse`, `matchCompanyToApplication`, `notifyRecruiterClaim`, `checkCoachingEligibility`, `prepareCoachingSession`, `generateInterviewBlueprint`, `assessJobMatchCapability`, `runWorkFitResearch` and the ElevenLabs session and token functions.
+- Read-only functions may run against demo records: `getEmployerExploreData` and `getTeamMemberAvatars`.
+- No emails, push or in-app notifications, weekly summaries or webhooks fire for demo records. No Stripe, Metronome, wallet or credit events, and no `AIUsageEvent` rows.
+- **The one exception** is the screen 2 clip. It may create one `JobTrayItem` and one `Application` flagged `is_demo` for Priya, and they're removed on **Exit**, **Restart** or **Reset**.
+
+### No live AI
+
+- No calls to OpenAI, Anthropic, Gemini, ElevenLabs or fal.ai from Demo mode. Every AI output is read from stored demo records.
+- Coaching plays from a stored session and, optionally, a stored audio file, never an ElevenLabs session.
+
+### Reset and integrity
+
+- A **Reset demo data** admin action and a nightly job restore every demo record from the seed file.
+- The seed file is version-controlled in GitHub and kept plain JSON-shaped, so it moves to Xano unchanged after the backend migration. The existing `src/demo/demoSeed.js` becomes the source for seeding records, not the source the screens render from.
+
+### Permissions
+
+- Demo mode is available to accounts with the platform `admin` role. That's three accounts today (two belong to the same founder). There's no `demo_presenter` role, and no Lab partner, customer or self-serve access in v1.
+- Starting, finishing and abandoning a demo is logged in `DemoRun` (who, when, track, screens reached). This is already built.
+
+### Presentation quality
+
+- Each screen loads in under 1 second, with demo records preloaded when the demo starts. The hubs' own "Loading your hub…" spinners must not show after 1 second.
+- Works at 1280×720 and above, so it records cleanly for Loom and video. The hub sidebars hide at 1024px and below, so test at exactly 1280×720.
+- The demo bar and callouts follow Design System v3.0, with Signal orange (`#F97316`) for highlights.
+- The browser tab title and URL show "Demo", so a presenter can never mistake it for live data.
+
+## Production defects found during the audit
+
+These show up on demo screens, so fix them before recording:
+
+| Defect | Where | Effect on the demo |
+|---|---|---|
+| The Sentiment arc uses stage keys `Interview` and `Closure`, which reviews never store (they store `InterviewingR1–R3` and exit keys) | `src/components/employerhub/AnalyticsTab.jsx` | Interview and closure bars are always empty on screen 11 |
+| `/submit-review` forwards to `/submit-review-v2` but drops `outcome_status` | `src/pages/SubmitReview.jsx` | **Mark as Ghosted** → "Close the loop" opens a review without the Ghosted outcome pre-filled |
+| `docs/test-accounts.md` lists Helply as `69e278e1…`, which is now the agency HelplyAgency | `src/docs/test-accounts.md` | Anyone seeding from that doc copies the wrong company |
+
+## Acceptance criteria
+
+- A founder can start the Full story track and reach screen 15 using only **Next**, with no other clicks
+- Each of the four tracks shows exactly the screens listed for it, in order
+- Screens 2–8 and 10–14 render the production page at the listed route, with no demo-only copy of that page anywhere in the codebase
+- **Back**, **Next**, ←, →, N, R and Esc work on every screen
+- Every screen shows populated demo data, with no empty states, no locked or **Gated** panels, no "Insufficient data" or "Building signal", and no spinner after 1 second
+- Demo Inc's numbers match wherever they appear (for example, CEI 69 on screens 6 and 10, and 27 reviews on screens 6 and 10)
+- Helply's name, logo, website and address appear on no demo screen
+- The extension clips the demo job into Priya's tracker (not the presenter's), and the clip is gone after **Exit**, **Restart** or **Reset**
+- Trying to save, post, send, mark as ghosted or start a session in Demo mode shows "Disabled in demo" and changes no data, checked at both the RLS and function level
+- No email, notification, credit deduction, `AIUsageEvent`, Stripe or Metronome event, and no AI provider call happens during a full run (checked in logs)
+- Demo records don't appear in search, the Directory, the Marketplace, benchmarks, rollups, BigQuery or analytics outside Demo mode
+- **Reset demo data** restores the seed exactly, and the nightly reset runs
+- Only platform admin accounts can see or open Demo mode
+- A full run records cleanly at 1280×720 with Notes hidden and callouts on or off
+
+## Decisions
+
+| Question | Decision |
+|---|---|
+| Platform | Build in the production Base44 app now. Keep the seed file portable for the Xano move. |
+| Screens | Real production routes with a demo identity layer. Retire the mock components in `src/components/demo/screens/` once each real screen passes. |
+| Chrome extension | Use the real extension with a demo sign-in path, and fall back to a recording until the new release clears Chrome Web Store review |
+| Employer scores | Copy Helply's CEI, SRR, SRRS, review count and stage results into a separate Demo Inc record |
+| Employer display name | Demo Inc, using Helply's numbers and none of its identity |
+| Weakest stage | Final Round, from Helply's data |
+| Recruiter-level reporting | Out of the demo until **Team Performance** ships |
+| Market insights | Out of the demo until the feature ships |
+| Access | Platform admins only |
+| Self-serve demo | Not for now |
+
+## Open questions
+
+| Question | Owner | Why it matters |
+|---|---|---|
+| Use a new `is_demo` field, or the built-in `is_sample` flag? | Engineering | Decides the schema change and every exclusion filter |
+| Do `Application`, `JobMatchSession` and `CoachingSession` RLS rules let an admin read another user's records? | Engineering | The demo identity layer can't load Priya's data without it |
+| What review count lifts Sample Recruitment and Demo Inc's Final Round to high confidence? | Product | Sets how much seed data to write |
+| Ship an extension release with a shortlistr.io adapter before Demo Day? | Founders | Store review adds lead time. Otherwise screen 2 uses the recording. |
+| Does the moderation prompt check for defamation? | Product | Decides whether the trust explainer may say so |

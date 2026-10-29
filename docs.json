@@ -16,6 +16,12 @@
           "index",
           "quickstart"
         ]
+      },
+      {
+        "group": "Product specs",
+        "pages": [
+          "specs/guided-demo-mode"
+        ]
       }
     ],
     "global": {
